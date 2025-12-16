@@ -1,14 +1,16 @@
 // 일일공방 (Daily Workshop) 메인 페이지
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import Canvas from '@/components/Canvas';
 import Inventory from '@/components/Inventory';
+import DailyChallenge from '@/components/DailyChallenge';
 import { useGameStore, CanvasElement } from '@/store/gameStore';
 
 export default function Home() {
   const {
+    discoveredElements,
     setDiscoveredElements,
     addDiscoveredElement,
     addToCanvas,
@@ -16,8 +18,10 @@ export default function Home() {
     addToRecent,
     setLoading,
     setCombining,
-    canvasElements,
   } = useGameStore();
+
+  // 조합 횟수 추적
+  const [moveCount, setMoveCount] = useState(0);
 
   // 초기 원소 로드
   useEffect(() => {
@@ -72,6 +76,7 @@ export default function Home() {
   const handleCombine = useCallback(
     async (elementA: CanvasElement, elementB: CanvasElement) => {
       setCombining(true);
+      setMoveCount((prev) => prev + 1);
 
       try {
         const response = await fetch('/api/combine', {
@@ -126,6 +131,11 @@ export default function Home() {
     [removeFromCanvas, addToCanvas, addDiscoveredElement, addToRecent, setCombining]
   );
 
+  // 챌린지 완료 핸들러
+  const handleChallengeComplete = useCallback(() => {
+    console.log('챌린지 완료!', { moveCount });
+  }, [moveCount]);
+
   return (
     <main className="relative w-screen h-screen overflow-hidden">
       {/* 인벤토리 사이드바 */}
@@ -133,6 +143,13 @@ export default function Home() {
 
       {/* 메인 캔버스 */}
       <Canvas onCombine={handleCombine} />
+
+      {/* 일일 챌린지 */}
+      <DailyChallenge
+        discoveredElements={discoveredElements}
+        moveCount={moveCount}
+        onComplete={handleChallengeComplete}
+      />
     </main>
   );
 }
