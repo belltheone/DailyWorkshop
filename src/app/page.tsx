@@ -8,6 +8,7 @@ import Canvas from '@/components/Canvas';
 import Inventory from '@/components/Inventory';
 import DailyChallenge from '@/components/DailyChallenge';
 import FirstDiscoveryModal from '@/components/FirstDiscoveryModal';
+import { LeftSidebarAd, RightSidebarAd, BottomBannerAd } from '@/components/AdBanner';
 import { useGameStore, CanvasElement } from '@/store/gameStore';
 
 export default function Home() {
@@ -191,6 +192,11 @@ export default function Home() {
         onClose={() => setFirstDiscovery({ ...firstDiscovery, isOpen: false })}
         element={firstDiscovery.element}
       />
+
+      {/* Google AdSense 배너 광고 */}
+      <LeftSidebarAd />
+      <RightSidebarAd />
+      <BottomBannerAd />
     </main>
   );
 }

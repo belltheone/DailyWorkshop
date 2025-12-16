@@ -1,6 +1,7 @@
 // 일일공방 (Daily Workshop) 루트 레이아웃
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 // Google Fonts 설정
@@ -26,6 +27,9 @@ export const metadata: Metadata = {
   },
 };
 
+// Google AdSense Client ID
+const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,6 +37,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
+      <head>
+        {/* Google AdSense 스크립트 */}
+        {ADSENSE_CLIENT && (
+          <Script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
+        )}
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
