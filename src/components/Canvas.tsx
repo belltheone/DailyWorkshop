@@ -1,15 +1,12 @@
 // 메인 캔버스 컴포넌트
-// 드래그 조합 + 클릭 선택 조합 지원
+// 클릭 기반 조합 (드래그 없음, 자동 정렬)
 'use client';
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ElementItem from './Element';
 import CombineEffect from './CombineEffect';
 import { useGameStore, CanvasElement } from '@/store/gameStore';
-
-// 조합 거리 임계값 (px)
-const COMBINE_THRESHOLD = 100;
 
 interface CanvasProps {
     onCombine: (
@@ -44,69 +41,28 @@ export default function Canvas({ onCombine }: CanvasProps) {
         position: { x: 0, y: 0 },
     });
 
-    // 두 원소 사이의 거리 계산
-    const getDistance = (a: CanvasElement, b: CanvasElement) => {
-        const dx = a.x - b.x;
-        const dy = a.y - b.y;
-        return Math.sqrt(dx * dx + dy * dy);
-    };
+    // 캔버스 크기 계산 및 자동 정렬
+    const arrangeElements = useCallback(() => {
+        if (!canvasRef.current) return;
 
-    // 가장 가까운 원소 찾기
-    const findNearestElement = useCallback(
-        (
-            draggedId: string,
-            x: number,
-            y: number
-        ): CanvasElement | null => {
-            const dragged = canvasElements.find((e) => e.id === draggedId);
-            if (!dragged) return null;
+        const containerWidth = canvasRef.current.clientWidth - 300; // 인벤토리 제외
+        const itemSize = 100;
+        const padding = 15;
+        const cols = Math.max(1, Math.floor(containerWidth / (itemSize + padding)));
 
-            const tempElement = { ...dragged, x, y };
-            let nearest: CanvasElement | null = null;
-            let minDistance = COMBINE_THRESHOLD;
+        canvasElements.forEach((element, index) => {
+            const row = Math.floor(index / cols);
+            const col = index % cols;
+            const x = 320 + padding + col * (itemSize + padding);
+            const y = 100 + padding + row * (itemSize + padding);
+            updateCanvasElementPosition(element.id, x, y);
+        });
+    }, [canvasElements, updateCanvasElementPosition]);
 
-            for (const element of canvasElements) {
-                if (element.id === draggedId) continue;
-                const distance = getDistance(tempElement, element);
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    nearest = element;
-                }
-            }
-
-            return nearest;
-        },
-        [canvasElements]
-    );
-
-    // 드래그 종료 처리
-    const handleDragEnd = useCallback(
-        async (id: string, x: number, y: number) => {
-            // 위치 업데이트
-            updateCanvasElementPosition(id, x, y);
-
-            // 가까운 원소 찾기
-            const nearest = findNearestElement(id, x, y);
-
-            if (nearest && !isCombining) {
-                const dragged = canvasElements.find((e) => e.id === id);
-                if (dragged) {
-                    console.log('드래그 조합 시도:', dragged.name, '+', nearest.name);
-                    // 조합 시도
-                    await onCombine(dragged, nearest);
-                }
-            }
-
-            setSelectedElement(null);
-        },
-        [
-            updateCanvasElementPosition,
-            findNearestElement,
-            canvasElements,
-            isCombining,
-            onCombine,
-        ]
-    );
+    // 원소가 추가되면 자동 정렬
+    useEffect(() => {
+        arrangeElements();
+    }, [canvasElements.length]);
 
     // 원소 클릭 처리 (클릭 조합)
     const handleElementClick = useCallback(
@@ -145,23 +101,6 @@ export default function Canvas({ onCombine }: CanvasProps) {
         },
         [removeFromCanvas, selectedElement]
     );
-
-    // 캔버스 정리하기
-    const handleArrange = () => {
-        const padding = 20;
-        const itemSize = 100;
-        const cols = Math.floor(
-            ((canvasRef.current?.clientWidth || 800) - 300) / (itemSize + padding)
-        );
-
-        canvasElements.forEach((element, index) => {
-            const row = Math.floor(index / cols);
-            const col = index % cols;
-            const x = 300 + padding + col * (itemSize + padding);
-            const y = 100 + padding + row * (itemSize + padding);
-            updateCanvasElementPosition(element.id, x, y);
-        });
-    };
 
     // 전체 비우기
     const handleClear = () => {
@@ -207,18 +146,10 @@ export default function Canvas({ onCombine }: CanvasProps) {
                                 {canvasElements.find((e) => e.id === selectedElement)?.name} 선택됨
                             </span>
                             <span className="text-xs text-purple-400">
-                                (다른 원소를 클릭하여 조합)
+                                (다른 원소 클릭)
                             </span>
                         </div>
                     )}
-                    <button
-                        onClick={handleArrange}
-                        className="px-4 py-2 text-sm bg-slate-800/80 hover:bg-slate-700/80
-                     text-slate-300 rounded-lg border border-slate-600/50
-                     transition-colors flex items-center gap-2"
-                    >
-                        🗂️ 정리하기
-                    </button>
                     <button
                         onClick={handleClear}
                         className="px-4 py-2 text-sm bg-slate-800/80 hover:bg-red-900/50
@@ -236,16 +167,14 @@ export default function Canvas({ onCombine }: CanvasProps) {
                 onClick={handleCanvasClick}
             >
                 <AnimatePresence>
-                    {canvasElements.map((element) => (
+                    {canvasElements.map((element, index) => (
                         <ElementItem
                             key={element.id}
                             id={element.id}
                             name={element.name}
                             emoji={element.emoji}
-                            x={element.x}
-                            y={element.y}
+                            index={index}
                             isSelected={selectedElement === element.id}
-                            onDragEnd={handleDragEnd}
                             onClick={handleElementClick}
                             onRemove={handleRemove}
                         />
@@ -263,7 +192,7 @@ export default function Canvas({ onCombine }: CanvasProps) {
                             <span className="text-6xl block mb-4">🧪</span>
                             <p className="text-lg">인벤토리에서 원소를 선택하세요</p>
                             <p className="text-sm mt-2">
-                                두 원소를 클릭하거나 드래그하여 조합합니다
+                                두 원소를 클릭하여 조합합니다
                             </p>
                         </div>
                     </motion.div>
