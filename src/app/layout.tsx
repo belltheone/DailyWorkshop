@@ -35,6 +35,9 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
+        {/* Google AdSense 사이트 확인용 메타 태그 */}
+        <meta name="google-adsense-account" content="ca-pub-5965391983551048" />
+
         {/* Google AdSense 스크립트 */}
         <Script
           async
