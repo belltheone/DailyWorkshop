@@ -1,4 +1,5 @@
 // 메인 캔버스 컴포넌트
+// 드래그 조합 + 클릭 선택 조합 지원
 'use client';
 
 import { useRef, useState, useCallback } from 'react';
@@ -8,7 +9,7 @@ import CombineEffect from './CombineEffect';
 import { useGameStore, CanvasElement } from '@/store/gameStore';
 
 // 조합 거리 임계값 (px)
-const COMBINE_THRESHOLD = 80;
+const COMBINE_THRESHOLD = 100;
 
 interface CanvasProps {
     onCombine: (
@@ -26,6 +27,9 @@ export default function Canvas({ onCombine }: CanvasProps) {
         isCombining,
     } = useGameStore();
 
+    // 선택된 원소 (클릭 조합용)
+    const [selectedElement, setSelectedElement] = useState<string | null>(null);
+
     // 조합 효과 상태
     const [combineEffect, setCombineEffect] = useState<{
         show: boolean;
@@ -39,12 +43,6 @@ export default function Canvas({ onCombine }: CanvasProps) {
         success: false,
         position: { x: 0, y: 0 },
     });
-
-    // 들어올리기 중인 원소 ID
-    const [nearbyPair, setNearbyPair] = useState<{
-        a: string;
-        b: string;
-    } | null>(null);
 
     // 두 원소 사이의 거리 계산
     const getDistance = (a: CanvasElement, b: CanvasElement) => {
@@ -93,12 +91,13 @@ export default function Canvas({ onCombine }: CanvasProps) {
             if (nearest && !isCombining) {
                 const dragged = canvasElements.find((e) => e.id === id);
                 if (dragged) {
+                    console.log('드래그 조합 시도:', dragged.name, '+', nearest.name);
                     // 조합 시도
                     await onCombine(dragged, nearest);
                 }
             }
 
-            setNearbyPair(null);
+            setSelectedElement(null);
         },
         [
             updateCanvasElementPosition,
@@ -109,12 +108,42 @@ export default function Canvas({ onCombine }: CanvasProps) {
         ]
     );
 
+    // 원소 클릭 처리 (클릭 조합)
+    const handleElementClick = useCallback(
+        async (id: string) => {
+            if (isCombining) return;
+
+            if (selectedElement === null) {
+                // 첫 번째 원소 선택
+                setSelectedElement(id);
+                console.log('첫 번째 원소 선택:', canvasElements.find(e => e.id === id)?.name);
+            } else if (selectedElement === id) {
+                // 같은 원소를 다시 클릭하면 선택 해제
+                setSelectedElement(null);
+            } else {
+                // 두 번째 원소 선택 -> 조합
+                const elementA = canvasElements.find((e) => e.id === selectedElement);
+                const elementB = canvasElements.find((e) => e.id === id);
+
+                if (elementA && elementB) {
+                    console.log('클릭 조합 시도:', elementA.name, '+', elementB.name);
+                    setSelectedElement(null);
+                    await onCombine(elementA, elementB);
+                }
+            }
+        },
+        [selectedElement, canvasElements, isCombining, onCombine]
+    );
+
     // 원소 제거
     const handleRemove = useCallback(
         (id: string) => {
             removeFromCanvas(id);
+            if (selectedElement === id) {
+                setSelectedElement(null);
+            }
         },
-        [removeFromCanvas]
+        [removeFromCanvas, selectedElement]
     );
 
     // 캔버스 정리하기
@@ -129,7 +158,7 @@ export default function Canvas({ onCombine }: CanvasProps) {
             const row = Math.floor(index / cols);
             const col = index % cols;
             const x = 300 + padding + col * (itemSize + padding);
-            const y = padding + row * (itemSize + padding);
+            const y = 100 + padding + row * (itemSize + padding);
             updateCanvasElementPosition(element.id, x, y);
         });
     };
@@ -138,6 +167,14 @@ export default function Canvas({ onCombine }: CanvasProps) {
     const handleClear = () => {
         const { clearCanvas } = useGameStore.getState();
         clearCanvas();
+        setSelectedElement(null);
+    };
+
+    // 캔버스 배경 클릭 시 선택 해제
+    const handleCanvasClick = (e: React.MouseEvent) => {
+        if (e.target === e.currentTarget) {
+            setSelectedElement(null);
+        }
     };
 
     return (
@@ -162,6 +199,18 @@ export default function Canvas({ onCombine }: CanvasProps) {
                 </div>
 
                 <div className="flex items-center gap-3">
+                    {/* 선택된 원소 표시 */}
+                    {selectedElement && (
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-600/30 border border-purple-500/50 rounded-lg text-sm text-purple-300">
+                            <span>🔮</span>
+                            <span>
+                                {canvasElements.find((e) => e.id === selectedElement)?.name} 선택됨
+                            </span>
+                            <span className="text-xs text-purple-400">
+                                (다른 원소를 클릭하여 조합)
+                            </span>
+                        </div>
+                    )}
                     <button
                         onClick={handleArrange}
                         className="px-4 py-2 text-sm bg-slate-800/80 hover:bg-slate-700/80
@@ -182,7 +231,10 @@ export default function Canvas({ onCombine }: CanvasProps) {
             </header>
 
             {/* 캔버스 영역 */}
-            <div className="absolute inset-0 pt-16 pl-72">
+            <div
+                className="absolute inset-0 pt-16 pl-72"
+                onClick={handleCanvasClick}
+            >
                 <AnimatePresence>
                     {canvasElements.map((element) => (
                         <ElementItem
@@ -192,7 +244,9 @@ export default function Canvas({ onCombine }: CanvasProps) {
                             emoji={element.emoji}
                             x={element.x}
                             y={element.y}
+                            isSelected={selectedElement === element.id}
                             onDragEnd={handleDragEnd}
+                            onClick={handleElementClick}
                             onRemove={handleRemove}
                         />
                     ))}
@@ -209,7 +263,7 @@ export default function Canvas({ onCombine }: CanvasProps) {
                             <span className="text-6xl block mb-4">🧪</span>
                             <p className="text-lg">인벤토리에서 원소를 선택하세요</p>
                             <p className="text-sm mt-2">
-                                두 원소를 가까이 드래그하면 조합됩니다
+                                두 원소를 클릭하거나 드래그하여 조합합니다
                             </p>
                         </div>
                     </motion.div>
@@ -236,7 +290,10 @@ export default function Canvas({ onCombine }: CanvasProps) {
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/30 flex items-center justify-center z-40"
                     >
-                        <div className="text-4xl animate-pulse">⚗️</div>
+                        <div className="text-center">
+                            <div className="text-4xl animate-pulse mb-2">⚗️</div>
+                            <p className="text-white text-sm">조합 중...</p>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
