@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Canvas from '@/components/Canvas';
 import Inventory from '@/components/Inventory';
 import DailyChallenge from '@/components/DailyChallenge';
+import FirstDiscoveryModal from '@/components/FirstDiscoveryModal';
 import { useGameStore, CanvasElement } from '@/store/gameStore';
 
 export default function Home() {
@@ -23,6 +24,12 @@ export default function Home() {
 
   // 조합 횟수 추적
   const [moveCount, setMoveCount] = useState(0);
+
+  // 최초 발견 모달 상태
+  const [firstDiscovery, setFirstDiscovery] = useState<{
+    isOpen: boolean;
+    element: { name: string; emoji: string };
+  }>({ isOpen: false, element: { name: '', emoji: '' } });
 
   // 초기 원소 로드
   useEffect(() => {
@@ -122,6 +129,17 @@ export default function Home() {
           });
 
           addToRecent(data.result.id);
+
+          // 최초 발견 시 모달 표시
+          if (data.isFirstDiscovery) {
+            setFirstDiscovery({
+              isOpen: true,
+              element: {
+                name: data.result.name,
+                emoji: data.result.emoji,
+              },
+            });
+          }
         }
       } catch (error) {
         console.error('조합 실패:', error);
@@ -166,6 +184,13 @@ export default function Home() {
           {discoveredElements.length}
         </span>
       </Link>
+
+      {/* 최초 발견 모달 */}
+      <FirstDiscoveryModal
+        isOpen={firstDiscovery.isOpen}
+        onClose={() => setFirstDiscovery({ ...firstDiscovery, isOpen: false })}
+        element={firstDiscovery.element}
+      />
     </main>
   );
 }
