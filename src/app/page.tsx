@@ -158,33 +158,36 @@ export default function Home() {
 
   return (
     <main className="relative w-screen h-screen overflow-hidden">
-      {/* 인벤토리 사이드바 */}
-      <Inventory onElementClick={handleElementClick} />
+      {/* 게임 영역 (광고 공간 확보) */}
+      <div className="xl:pl-[170px] xl:pr-[170px] pb-[90px] h-full">
+        {/* 인벤토리 사이드바 */}
+        <Inventory onElementClick={handleElementClick} />
 
-      {/* 메인 캔버스 */}
-      <Canvas onCombine={handleCombine} />
+        {/* 메인 캔버스 */}
+        <Canvas onCombine={handleCombine} />
 
-      {/* 일일 챌린지 */}
-      <DailyChallenge
-        discoveredElements={discoveredElements}
-        moveCount={moveCount}
-        onComplete={handleChallengeComplete}
-      />
+        {/* 일일 챌린지 */}
+        <DailyChallenge
+          discoveredElements={discoveredElements}
+          moveCount={moveCount}
+          onComplete={handleChallengeComplete}
+        />
 
-      {/* 도감 링크 버튼 */}
-      <Link
-        href="/collection"
-        className="fixed bottom-4 right-4 z-20 flex items-center gap-2 px-4 py-3
-                   bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700
-                   text-white font-medium rounded-xl shadow-lg hover:shadow-xl
-                   transition-all duration-200 hover:scale-105"
-      >
-        <span className="text-xl">📚</span>
-        <span>도감</span>
-        <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">
-          {discoveredElements.length}
-        </span>
-      </Link>
+        {/* 도감 링크 버튼 */}
+        <Link
+          href="/collection"
+          className="fixed bottom-[100px] right-[180px] xl:right-[180px] z-20 flex items-center gap-2 px-4 py-3
+                     bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700
+                     text-white font-medium rounded-xl shadow-lg hover:shadow-xl
+                     transition-all duration-200 hover:scale-105"
+        >
+          <span className="text-xl">📚</span>
+          <span>도감</span>
+          <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">
+            {discoveredElements.length}
+          </span>
+        </Link>
+      </div>
 
       {/* 최초 발견 모달 */}
       <FirstDiscoveryModal

@@ -10,8 +10,8 @@ interface AdBannerProps {
     className?: string;
 }
 
-// Google AdSense Client ID (환경변수에서 로드)
-const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT || 'ca-pub-xxxxxxxxxx';
+// Google AdSense Client ID
+const ADSENSE_CLIENT = 'ca-pub-5965391983551048';
 
 export default function AdBanner({
     slot,
@@ -58,12 +58,14 @@ export default function AdBanner({
 export function LeftSidebarAd() {
     return (
         <div className="fixed left-0 top-1/2 -translate-y-1/2 z-10 hidden xl:block">
-            <div className="w-[160px] bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-r-lg p-2">
-                <AdBanner
-                    slot="left-sidebar"
-                    format="vertical"
-                    style={{ width: '160px', height: '600px' }}
-                />
+            <div className="w-[160px] bg-slate-800/80 backdrop-blur-sm border border-slate-700/50 rounded-r-lg p-2">
+                <div className="w-[140px] h-[400px] bg-slate-700/30 rounded flex items-center justify-center">
+                    <AdBanner
+                        slot="1234567890"
+                        format="vertical"
+                        style={{ width: '140px', height: '400px' }}
+                    />
+                </div>
                 <p className="text-center text-xs text-slate-500 mt-1">광고</p>
             </div>
         </div>
@@ -74,12 +76,14 @@ export function LeftSidebarAd() {
 export function RightSidebarAd() {
     return (
         <div className="fixed right-0 top-1/2 -translate-y-1/2 z-10 hidden xl:block">
-            <div className="w-[160px] bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-l-lg p-2">
-                <AdBanner
-                    slot="right-sidebar"
-                    format="vertical"
-                    style={{ width: '160px', height: '600px' }}
-                />
+            <div className="w-[160px] bg-slate-800/80 backdrop-blur-sm border border-slate-700/50 rounded-l-lg p-2">
+                <div className="w-[140px] h-[400px] bg-slate-700/30 rounded flex items-center justify-center">
+                    <AdBanner
+                        slot="0987654321"
+                        format="vertical"
+                        style={{ width: '140px', height: '400px' }}
+                    />
+                </div>
                 <p className="text-center text-xs text-slate-500 mt-1">광고</p>
             </div>
         </div>
@@ -90,13 +94,14 @@ export function RightSidebarAd() {
 export function BottomBannerAd() {
     return (
         <div className="fixed bottom-0 left-0 right-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700/50">
-            <div className="max-w-3xl mx-auto p-2">
-                <AdBanner
-                    slot="bottom-banner"
-                    format="horizontal"
-                    style={{ width: '100%', height: '90px' }}
-                />
-                <p className="text-center text-xs text-slate-500">광고</p>
+            <div className="max-w-3xl mx-auto py-2 px-4">
+                <div className="w-full h-[70px] bg-slate-700/30 rounded flex items-center justify-center">
+                    <AdBanner
+                        slot="1122334455"
+                        format="horizontal"
+                        style={{ width: '100%', height: '70px' }}
+                    />
+                </div>
             </div>
         </div>
     );

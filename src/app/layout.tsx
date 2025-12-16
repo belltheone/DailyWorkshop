@@ -27,9 +27,6 @@ export const metadata: Metadata = {
   },
 };
 
-// Google AdSense Client ID
-const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -39,14 +36,12 @@ export default function RootLayout({
     <html lang="ko">
       <head>
         {/* Google AdSense 스크립트 */}
-        {ADSENSE_CLIENT && (
-          <Script
-            async
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
-            crossOrigin="anonymous"
-            strategy="afterInteractive"
-          />
-        )}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5965391983551048"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
