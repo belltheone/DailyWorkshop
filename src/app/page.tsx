@@ -3,6 +3,7 @@
 
 import { useEffect, useCallback, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import Link from 'next/link';
 import Canvas from '@/components/Canvas';
 import Inventory from '@/components/Inventory';
 import DailyChallenge from '@/components/DailyChallenge';
@@ -150,6 +151,21 @@ export default function Home() {
         moveCount={moveCount}
         onComplete={handleChallengeComplete}
       />
+
+      {/* 도감 링크 버튼 */}
+      <Link
+        href="/collection"
+        className="fixed bottom-4 right-4 z-20 flex items-center gap-2 px-4 py-3
+                   bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700
+                   text-white font-medium rounded-xl shadow-lg hover:shadow-xl
+                   transition-all duration-200 hover:scale-105"
+      >
+        <span className="text-xl">📚</span>
+        <span>도감</span>
+        <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">
+          {discoveredElements.length}
+        </span>
+      </Link>
     </main>
   );
 }
